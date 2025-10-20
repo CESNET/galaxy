@@ -209,10 +209,16 @@ function returnToLogin() {
 
                                             <a
                                                 v-localize
-                                                href="mailto:regalaxy@rt.cesnet.cz?subject=RepeatExplorer Galaxy: password reset request"
+                                                href="https://perun.e-infra.cz/myProfile/settings/passwordReset?idpFilter=krb"
                                                 role="button">
-                                                Click here and ask the support team to reset your password.
+                                                Click here
                                             </a>
+                                            or write an email to
+                                            <a href="mailto:regalaxy@rt.cesnet.cz?subject=RepeatExplorer Galaxy: password reset request"
+                                               role="button">
+                                               regalaxy@rt.cesnet.cz
+                                            </a>
+                                            and ask the support team to reset your password.
                                         </BFormText>
                                     </BFormGroup>
 
@@ -246,7 +252,7 @@ function returnToLogin() {
                             <BCardFooter>
                                 <span v-if="!connectExternalProvider">
                                     Don't have an account?
-                                    <span v-if="allowUserCreation">
+                                    <span>
                                         <a
                                             id="register-toggle"
                                             v-localize
@@ -254,10 +260,6 @@ function returnToLogin() {
                                             role="button">
                                             Register here.
                                         </a>
-                                    </span>
-                                    <span v-else>
-                                        Registration for this Galaxy instance is disabled. Please contact an
-                                        administrator for assistance.
                                     </span>
                                 </span>
                                 <span v-else>

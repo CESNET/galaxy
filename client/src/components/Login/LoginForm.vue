@@ -176,7 +176,7 @@ function returnToLogin() {
                                 <div>
                                     <!-- standard internal galaxy login -->
                                     <BFormGroup
-                                        :label="localize('Public Name or Email Address')"
+                                        :label="localize('Registered login')"
                                         label-for="login-form-name">
                                         <BFormInput
                                             v-if="!connectExternalProvider"
@@ -209,10 +209,9 @@ function returnToLogin() {
 
                                             <a
                                                 v-localize
-                                                href="javascript:void(0)"
-                                                role="button"
-                                                @click.prevent="resetLogin">
-                                                Click here to reset your password.
+                                                href="mailto:regalaxy@rt.cesnet.cz?subject=RepeatExplorer Galaxy: password reset request"
+                                                role="button">
+                                                Click here and ask the support team to reset your password.
                                             </a>
                                         </BFormText>
                                     </BFormGroup>
@@ -251,9 +250,8 @@ function returnToLogin() {
                                         <a
                                             id="register-toggle"
                                             v-localize
-                                            href="javascript:void(0)"
-                                            role="button"
-                                            @click.prevent="toggleLogin">
+                                            href="https://metavo.metacentrum.cz/osobniv3/wayf/elixir.jsp"
+                                            role="button">
                                             Register here.
                                         </a>
                                     </span>

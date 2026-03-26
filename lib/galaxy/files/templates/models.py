@@ -37,6 +37,7 @@ FileSourceTemplateType = Literal[
     "s3fs",
     "azure",
     "azureflat",
+    "irods",
     "onedata",
     "webdav",
     "dropbox",
@@ -190,6 +191,34 @@ class AzureFlatFileSourceConfiguration(StrictModel):
     account_name: str
     container_name: Optional[str] = None
     account_key: str
+    writable: bool = False
+
+
+class IrodsFileSourceTemplateConfiguration(StrictModel):
+    type: Literal["irods"]
+    host: Union[str, TemplateExpansion]
+    port: Union[int, TemplateExpansion] = 1247
+    username: Union[str, TemplateExpansion]
+    password: Union[str, TemplateExpansion]
+    zone: Union[str, TemplateExpansion]
+    root: Optional[Union[str, TemplateExpansion]] = None
+    timeout: Union[int, TemplateExpansion] = 30
+    refresh_time: Union[int, TemplateExpansion] = 300
+    writable: Union[bool, TemplateExpansion] = False
+    template_start: Optional[str] = None
+    template_end: Optional[str] = None
+
+
+class IrodsFileSourceConfiguration(StrictModel):
+    type: Literal["irods"]
+    host: str
+    port: int = 1247
+    username: str
+    password: str
+    zone: str
+    root: Optional[str] = None
+    timeout: int = 30
+    refresh_time: int = 300
     writable: bool = False
 
 
@@ -358,6 +387,7 @@ FileSourceTemplateConfiguration = Annotated[
         FtpFileSourceTemplateConfiguration,
         AzureFileSourceTemplateConfiguration,
         AzureFlatFileSourceTemplateConfiguration,
+        IrodsFileSourceTemplateConfiguration,
         OnedataFileSourceTemplateConfiguration,
         WebdavFileSourceTemplateConfiguration,
         DropboxFileSourceTemplateConfiguration,
@@ -380,6 +410,7 @@ FileSourceConfiguration = Annotated[
         FtpFileSourceConfiguration,
         AzureFileSourceConfiguration,
         AzureFlatFileSourceConfiguration,
+        IrodsFileSourceConfiguration,
         OnedataFileSourceConfiguration,
         WebdavFileSourceConfiguration,
         DropboxFileSourceConfiguration,
@@ -460,6 +491,7 @@ TypesToConfigurationClasses: dict[FileSourceTemplateType, type[FileSourceConfigu
     "s3fs": S3FSFileSourceConfiguration,
     "azure": AzureFileSourceConfiguration,
     "azureflat": AzureFlatFileSourceConfiguration,
+    "irods": IrodsFileSourceConfiguration,
     "onedata": OnedataFileSourceConfiguration,
     "webdav": WebdavFileSourceConfiguration,
     "dropbox": DropboxFileSourceConfiguration,

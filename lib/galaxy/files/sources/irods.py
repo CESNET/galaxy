@@ -81,9 +81,45 @@ class IrodsFilesSource(PyFilesystem2FilesSource[IrodsFileSourceTemplateConfigura
     template_config_class = IrodsFileSourceTemplateConfiguration
     resolved_config_class = IrodsFileSourceConfiguration
 
-    def _normalize_listdir_name(self, value: str) -> str:
-        # fs-irods currently returns absolute iRODS paths from listdir; convert to simple entry names.
-        return os.path.basename(str(value).rstrip("/"))
+    def _iter_directory_entries(self, fs_handle, parent_path: str, normalized_query: Optional[str] = None):
+        for raw_name in fs_handle.listdir(parent_path):
+            name = os.path.basename(str(raw_name).rstrip("/"))
+            if not name:
+                continue
+            if normalized_query and not fnmatch(name.lower(), f"*{normalized_query}*"):
+                continue
+            entry_path = fs.path.join(parent_path, name)
+            info = fs_handle.getinfo(entry_path, namespaces=["details"])
+            yield entry_path, info
+
+    def _list_recursive(self, fs_handle, path: str) -> tuple[list[AnyRemoteEntry], int]:
+        result: list[AnyRemoteEntry] = []
+        pending = [path]
+        while pending:
+            current_path = pending.pop(0)
+            for entry_path, info in self._iter_directory_entries(fs_handle, current_path):
+                result.append(self._resource_info_to_dict(current_path, info))
+                if info.is_dir:
+                    pending.append(entry_path)
+        return result, len(result)
+
+    def _list_non_recursive(
+        self,
+        fs_handle,
+        path: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        query: Optional[str] = None,
+    ) -> tuple[list[AnyRemoteEntry], int]:
+        normalized_query = query.lower() if query else None
+        entries = []
+        for _, info in self._iter_directory_entries(fs_handle, path, normalized_query):
+            entries.append(self._resource_info_to_dict(path, info))
+        count = len(entries)
+        page = self._to_page(limit, offset)
+        if page is not None:
+            entries = entries[page[0] : page[1]]
+        return entries, count
 
     def _list(
         self,
@@ -97,40 +133,10 @@ class IrodsFilesSource(PyFilesystem2FilesSource[IrodsFileSourceTemplateConfigura
         sort_by: Optional[str] = None,
     ) -> tuple[list[AnyRemoteEntry], int]:
         try:
-            with self._open_fs(context) as h:
+            with self._open_fs(context) as fs_handle:
                 if recursive:
-                    result: list[AnyRemoteEntry] = []
-                    pending = [path]
-                    while pending:
-                        current_path = pending.pop(0)
-                        for raw_name in h.listdir(current_path):
-                            name = self._normalize_listdir_name(raw_name)
-                            if not name:
-                                continue
-                            entry_path = fs.path.join(current_path, name)
-                            info = h.getinfo(entry_path, namespaces=["details"])
-                            result.append(self._resource_info_to_dict(current_path, info))
-                            if info.is_dir:
-                                pending.append(entry_path)
-                    return result, len(result)
-
-                normalized_query = query.lower() if query else None
-                entries = []
-                for raw_name in h.listdir(path):
-                    name = self._normalize_listdir_name(raw_name)
-                    if not name:
-                        continue
-                    if normalized_query and not fnmatch(name.lower(), f"*{normalized_query}*"):
-                        continue
-                    entry_path = fs.path.join(path, name)
-                    info = h.getinfo(entry_path, namespaces=["details"])
-                    entries.append(self._resource_info_to_dict(path, info))
-
-                count = len(entries)
-                page = self._to_page(limit, offset)
-                if page is not None:
-                    entries = entries[page[0] : page[1]]
-                return entries, count
+                    return self._list_recursive(fs_handle, path)
+                return self._list_non_recursive(fs_handle, path, limit, offset, query)
         except fs.errors.PermissionDenied as e:
             raise AuthenticationRequired(
                 f"Permission Denied. Reason: {e}. Please check your credentials in your preferences for {self.label}."

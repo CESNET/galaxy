@@ -15,7 +15,7 @@
   # for accessing passwords stored in a vault:
   # password: ${user.user_vault.read_secret('preferences/owncloud/password')}
 
-  # By default, the plugin will use temp files to avoid loading entire files into memory. 
+  # By default, the plugin will use temp files to avoid loading entire files into memory.
   # You can change the directory here or omit to use the default temp directory.
   temp_path: /your/temp/path
   # Set writable to true if you have write access to this source
@@ -259,6 +259,10 @@
   # token: ${user.preferences['invenio_sandbox|token']} # Alternatively use this for retrieving the token from user preferences instead of the Vault
   public_name: ${user.preferences['invenio_sandbox|public_name']}
   writable: true
+  # Enable multipart upload for files of size >= threshold (values in MB, optional, disabled by default)
+  # multipart_threshold: 100
+  # Part size for multipart uploads (values in MB, optional, defaults to 5 MiB minimum)
+  # multipart_chunk_size: 50
 
 - type: zenodo
   id: zenodo

@@ -109,13 +109,10 @@ class RecordLinks(TypedDict):
     reserve_doi: str
 
 
-# AWS S3 multipart limits (used by Invenio RDM)
-MIN_UPLOAD_PART_SIZE = 50 * 1024 * 1024  # 50 MiB
+# AWS S3 multipart default limits (used by Invenio RDM)
+MIN_UPLOAD_PART_SIZE = 5 * 1024 * 1024  # 5 MiB
 MAX_UPLOAD_PART_SIZE = 5 * 1024**3  # 5 GiB
 MAX_UPLOAD_PARTS = 10_000
-
-# Default threshold for using multipart upload (100 MiB)
-DEFAULT_MULTIPART_THRESHOLD = 100 * 1024 * 1024
 
 
 def calculate_multipart_params(file_size: int, preferred_part_size: int | None = None) -> tuple[int, int]:
@@ -389,16 +386,12 @@ class InvenioRepositoryInteractor(RDMRepositoryInteractor):
         context: FilesSourceRuntimeContext[RDMFileSourceConfiguration],
     ):
         file_size = os.path.getsize(file_path)
-        threshold = context.config.multipart_threshold
 
-        # Use default threshold if not configured
-        if threshold is None or threshold <= 0:
-            threshold = DEFAULT_MULTIPART_THRESHOLD
-
-        use_multipart = file_size >= threshold
-
+        threshold_mb = context.config.multipart_threshold
+        # Convert threshold from MB to bytes (config value is always in MB)
+        threshold_bytes = threshold_mb * 1024 * 1024 if threshold_mb else None
+        use_multipart = file_size >= threshold_bytes if threshold_bytes else False
         if use_multipart:
-            log.info(f"Using multipart upload for file '{filename}' ({file_size} bytes >= threshold {threshold})")
             self._upload_file_multipart(record_id, filename, file_path, file_size, context)
         else:
             self._upload_file_single(record_id, filename, file_path, context, file_size)
@@ -432,11 +425,10 @@ class InvenioRepositoryInteractor(RDMRepositoryInteractor):
             response = requests.put(upload_file_content_url, data=file, headers=headers)
             # Handle 413 (Payload Too Large) - suggest using multipart upload
             if response.status_code == 413:
-                threshold_mb = DEFAULT_MULTIPART_THRESHOLD / (1024 * 1024)
                 raise Exception(
                     f"Failed to upload file '{filename}' ({file_size} bytes): HTTP 413 Payload Too Large. "
                     f"The server rejected the upload because the file is too large for a single request. "
-                    f"Please configure 'multipart_threshold' to {threshold_mb}MB or lower to enable multipart upload for files of this size."
+                    f"Please configure 'multipart_threshold' in the file source configuration to enable multipart upload for files of this size."
                 )
             self._ensure_response_has_expected_status_code(response, 200)
 
@@ -461,7 +453,9 @@ class InvenioRepositoryInteractor(RDMRepositoryInteractor):
         4. Upload parts (parallel for > 2 parts)
         5. POST to commit URL
         """
-        preferred_part_size = context.config.multipart_chunk_size
+        preferred_part_size_mb = context.config.multipart_chunk_size
+        # Convert chunk size from MB to bytes (config value is always in MB)
+        preferred_part_size = preferred_part_size_mb * 1024 * 1024 if preferred_part_size_mb else None
         num_parts, part_size = calculate_multipart_params(file_size, preferred_part_size)
 
         log.info(f"Multipart upload: {num_parts} parts of {part_size} bytes each for '{filename}'")
@@ -470,7 +464,6 @@ class InvenioRepositoryInteractor(RDMRepositoryInteractor):
         upload_file_url = record["links"]["files"]
         headers = self._get_request_headers(context, auth_required=True)
 
-        # Initialize multipart upload with transfer metadata
         file_metadata = {
             "key": filename,
             "size": file_size,
@@ -495,13 +488,8 @@ class InvenioRepositoryInteractor(RDMRepositoryInteractor):
             )
 
         # Sort part links by part number to ensure correct ordering
-        # Invenio uses 'part' key, not 'part_number'
         part_links = sorted(part_links, key=lambda p: p.get("part", 0))
-
-        # Upload parts
         self._upload_parts(file_path, file_size, part_size, part_links, headers)
-
-        # Commit multipart upload
         response = requests.post(commit_url, json={}, headers=headers)
         self._ensure_response_has_expected_status_code(response, 200)
         log.info(f"Multipart upload completed for '{filename}'")

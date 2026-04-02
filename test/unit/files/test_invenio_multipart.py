@@ -20,25 +20,25 @@ class TestCalculateMultipartParams:
         assert part_size == 0
 
     def test_calculate_multipart_params_small_file(self):
-        """Files under 50 MiB should use minimum part size."""
-        # 10 MiB file
-        file_size = 10 * 1024 * 1024
+        """Files under 5 MiB should use minimum part size."""
+        # 2 MiB file
+        file_size = 2 * 1024 * 1024
         parts, part_size = calculate_multipart_params(file_size)
         assert parts == 1
         assert part_size == MIN_UPLOAD_PART_SIZE
 
     def test_calculate_multipart_params_medium_file(self):
-        """Files between 50 MiB and 100 MiB."""
-        # 75 MiB file
-        file_size = 75 * 1024 * 1024
+        """Files between 5 MiB and 10 MiB."""
+        # 7.5 MiB file
+        file_size = 7 * 1024 * 1024 + 512 * 1024
         parts, part_size = calculate_multipart_params(file_size)
         assert parts == 2
         assert part_size == MIN_UPLOAD_PART_SIZE
 
     def test_calculate_multipart_params_large_file(self):
         """Large files requiring multiple parts."""
-        # 250 MiB file
-        file_size = 250 * 1024 * 1024
+        # 25 MiB file
+        file_size = 25 * 1024 * 1024
         parts, part_size = calculate_multipart_params(file_size)
         assert parts == 5
         assert part_size == MIN_UPLOAD_PART_SIZE

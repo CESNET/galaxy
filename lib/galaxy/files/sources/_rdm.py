@@ -27,6 +27,7 @@ class RDMFileSourceTemplateConfiguration(BaseFileSourceTemplateConfiguration):
     public_name: Optional[Union[str, TemplateExpansion]] = None
     multipart_threshold: Optional[Union[int, TemplateExpansion]] = None  # MB
     multipart_chunk_size: Optional[Union[int, TemplateExpansion]] = None  # MB
+    default_resource_type: Optional[str] = None
 
 
 class RDMFileSourceConfiguration(BaseFileSourceConfiguration):
@@ -34,6 +35,7 @@ class RDMFileSourceConfiguration(BaseFileSourceConfiguration):
     public_name: Optional[str] = None
     multipart_threshold: Optional[int] = None  # MB
     multipart_chunk_size: Optional[int] = None  # MB
+    default_resource_type: Optional[str] = None
 
 
 class ContainerAndFileIdentifier(NamedTuple):

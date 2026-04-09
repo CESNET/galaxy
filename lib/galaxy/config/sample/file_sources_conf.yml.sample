@@ -263,6 +263,8 @@
   # multipart_threshold: 100
   # Part size for multipart uploads (values in MB, optional, defaults to 5 MiB minimum)
   # multipart_chunk_size: 50
+  # Default resource type for new records (optional, defaults to "dataset")
+  # default_resource_type:
 
 - type: zenodo
   id: zenodo

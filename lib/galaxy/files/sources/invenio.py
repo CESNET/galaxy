@@ -359,12 +359,13 @@ class InvenioRepositoryInteractor(RDMRepositoryInteractor):
     ) -> dict[str, Any]:
         today = datetime.date.today().isoformat()
         creator = self._get_creator_from_public_name(public_name)
+        resource_type_id = context.config.default_resource_type or "dataset"
         create_record_request = {
             "files": {"enabled": True},
             "metadata": {
                 "title": title,
                 "publication_date": today,
-                "resource_type": {"id": "c_393c"},
+                "resource_type": {"id": resource_type_id},
                 "creators": [
                     creator,
                 ],

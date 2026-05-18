@@ -1,6 +1,6 @@
+import os
 import ssl
 from fnmatch import fnmatch
-import os
 from typing import (
     Optional,
     Union,
@@ -9,15 +9,15 @@ from typing import (
 import fs
 import fs.errors
 
+from galaxy.exceptions import (
+    AuthenticationRequired,
+    MessageException,
+)
 from galaxy.files.models import (
     AnyRemoteEntry,
     BaseFileSourceConfiguration,
     BaseFileSourceTemplateConfiguration,
     FilesSourceRuntimeContext,
-)
-from galaxy.exceptions import (
-    AuthenticationRequired,
-    MessageException,
 )
 from galaxy.util.config_templates import TemplateExpansion
 from ._pyfilesystem2 import PyFilesystem2FilesSource

@@ -1,3 +1,19 @@
+- type: irods
+  id: irods_local_instance
+  label: Local iRODS
+  doc: iRODS in local Docker stack
+  writable: true
+
+  host: 127.0.0.1
+  port: 1247
+  username: user
+  password: password
+  zone: exampleZone
+  root: /exampleZone/home/user
+
+  timeout: 30
+  refresh_time: 300
+
 - type: dropbox
   id: dropbox1
   label: Dropbox files (configure access in user preferences)

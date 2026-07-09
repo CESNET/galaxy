@@ -752,7 +752,7 @@ class InvenioRepositoryInteractor(RDMRepositoryInteractor):
 
     def _raise_auth_required(self):
         raise AuthenticationRequired(
-            f"Please provide a personal access token in your user's preferences for '{self.plugin.label}'"
+            f"Access denied. Please make sure you have provided a personal access token in your user's preferences for '{self.plugin.label}'"
         )
 
     def _get_response_error_message(self, response):

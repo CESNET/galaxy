@@ -25,11 +25,15 @@ log = logging.getLogger(__name__)
 class RDMFileSourceTemplateConfiguration(BaseFileSourceTemplateConfiguration):
     token: Optional[Union[str, TemplateExpansion]] = None
     public_name: Optional[Union[str, TemplateExpansion]] = None
+    multipart_threshold: Optional[Union[int, TemplateExpansion]] = None  # bytes
+    multipart_chunk_size: Optional[Union[int, TemplateExpansion]] = None  # bytes
 
 
 class RDMFileSourceConfiguration(BaseFileSourceConfiguration):
     token: Optional[str] = None
     public_name: Optional[str] = None
+    multipart_threshold: Optional[int] = None  # bytes
+    multipart_chunk_size: Optional[int] = None  # bytes
 
 
 class ContainerAndFileIdentifier(NamedTuple):
